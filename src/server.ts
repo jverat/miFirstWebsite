@@ -1,18 +1,26 @@
 import express from 'express';
+import morgan from 'morgan';
+import helmet from 'helmet';
+
+import indexRoutes from './routes/indexRoutes';
 
 class Server {
     public app: express.Application;
 
     constructor() {
         this.app = express();
+        this.config();
+        this.routes();
     }
 
     config() {
         this.app.set('port', process.env.PORT || 3000);
+        this.app.use(morgan('dev'));
+        this.app.use(helmet());
     }
 
-    routes() {
-
+    routes(){
+        this.app.use(indexRoutes);
     }
 
     start() {
@@ -21,3 +29,6 @@ class Server {
         });
     }
 }
+
+const server = new Server();
+server.start();
