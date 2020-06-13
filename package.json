@@ -1,6 +1,9 @@
 {
   "name": "miFirstWebsite",
   "version": "1.0.0",
+  "scripts": {
+    "server": "nodemon src/routes/LogInRoutes.ts"
+  },
   "dependencies": {
     "express": "4.17.1",
     "uuid": "^8.1.0"

@@ -3,10 +3,10 @@
     "module": "commonjs",
     "target": "es6",
     "sourceMap": true,
-    "incremental": true,
-    "outDir": "./disc",
+    //"incremental": true,
+    "outDir": "./dist",
     "rootDir": "./src",
-    "script": true,
+    "strict": true,
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "importHelpers": true
