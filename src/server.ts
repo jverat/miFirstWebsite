@@ -8,6 +8,7 @@ import compression from 'compression';
 import cors from 'cors';
 
 import indexRoutes from './routes/indexRoutes';
+import userRoutes from './routes/UserRoutes';
 
 class Server {
     public app: express.Application;
@@ -35,12 +36,13 @@ class Server {
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: false }));
         this.app.use(helmet());
-        this.app.use(compression());
+        //this.app.use(compression());
         this.app.use(cors());
     }
 
     routes(){
         this.app.use(indexRoutes);
+        this.app.use('/api', userRoutes);
     }
 
     start() {
