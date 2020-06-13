@@ -1,7 +1,11 @@
 import express from 'express';
+import mongoose from 'mongoose';
+
+
 import morgan from 'morgan';
 import helmet from 'helmet';
-import mongoose from 'mongoose';
+import compression from 'compression';
+import cors from 'cors';
 
 import indexRoutes from './routes/indexRoutes';
 
@@ -28,7 +32,11 @@ class Server {
 
         //Middlewares
         this.app.use(morgan('dev'));
+        this.app.use(express.json());
+        this.app.use(express.urlencoded({ extended: false }));
         this.app.use(helmet());
+        this.app.use(compression());
+        this.app.use(cors());
     }
 
     routes(){
