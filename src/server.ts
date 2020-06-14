@@ -42,7 +42,7 @@ class Server {
 
     routes(){
         this.app.use(indexRoutes);
-        this.app.use('/api', userRoutes);
+        this.app.use('/api/user', userRoutes);
     }
 
     start() {
