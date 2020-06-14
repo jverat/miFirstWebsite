@@ -14,17 +14,25 @@ class UserRoutes{
 
     async getUser(req: Request, res: Response){
         //Request = username
-        const users = await User.find();
-        res.json(users);
+        const u = await User.find({username: req.params.username});
+        console.log((req.params.username));
+        res.json(u)
+    }
+
+    async postUser(req: Request, res: Response){
+        const {username, password, email} = req.body;
+        const newUser = new User({username, password, email});
+        await newUser.save();
+        res.json({data: newUser});
     }
 
     routes(){
-        this.router.get('/user', (req: Request, res:Response) => {
+        this.router.get('/user/:username', (req: Request, res:Response) => {
             this.getUser(req, res);
         });
 
-        this.router.post('/user/:username', (req: Request, res:Response) => {
-            console.log(req.body);
+        this.router.post('/user', (req: Request, res:Response) => {
+            this.postUser(req, res);
         });
     }
 }
