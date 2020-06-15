@@ -9,5 +9,8 @@ const userSchema = new Schema ({
    timestamps: true,
 });
 
+userSchema.methods.validate = (inputPassword: String): boolean => {
+    return inputPassword === userSchema.get('password');
+}
 
 export default model('user', userSchema);
