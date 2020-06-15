@@ -10,46 +10,53 @@ class UserRoutes{
         this.routes();
     }
 
-    public async getUser(req: Request, res: Response): Promise<void> {
+    public async getUser(req: Request, res: Response) {
         const u = await User.findOne({username: req.params.username});
         console.log((req.params.username));
         res.json(u)
     }
 
-    public async postUser(req: Request, res: Response): Promise<void> {
+    public async postUser(req: Request, res: Response) {
         const {username, password, email} = req.body;
         const newUser = new User({username, password, email});
-        await newUser.save();
+        await newUser.save((err, newUser) => {
+            if (err) return console.error(err);
+            else console.log(newUser.get('username'));
+        });
         res.json({data: newUser});
     }
 
-    async updateUser(req: Request, res: Response): Promise<void> {
+    public async updateUser(req: Request, res: Response) {
         console.log(req.params.username);
         console.log(req.body);
         const updatedUser = await User.findOneAndUpdate({username: req.params.username}, req.body, {new: true});
         res.json({data: updatedUser});
     }
 
-    async deleteUser(req: Request, res: Response): Promise<void> {
+    public async deleteUser(req: Request, res: Response) {
         await User.findOneAndDelete({username: req.params.username});
-        res.json('copas')
+        res.json('copas');
     }
 
-    routes(){
+    private routes(){
         this.router.get('/:username', (req: Request, res:Response) => {
-            this.getUser(req, res);
+            this.getUser(req, res)
+                .then();
         });
 
         this.router.post('/', (req: Request, res:Response) => {
-            this.postUser(req, res);
+            this.postUser(req, res)
+                .then();
         });
 
         this.router.put('/:username', (req: Request, res: Response) => {
-           this.updateUser(req, res);
+           this.updateUser(req, res)
+               .then();
         });
 
         this.router.delete('/:username', (req: Request, res: Response) => {
-           this.deleteUser(req, res);
+           this.deleteUser(req, res)
+               .then();
         });
     }
 }

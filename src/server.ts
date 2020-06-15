@@ -20,6 +20,7 @@ class Server {
     }
 
     config() {
+        //DB setup
         const MONGO_URI = 'mongodb://localhost/mfws';
         mongoose.set('useFindAndModify', true);
         mongoose.connect(MONGO_URI || process.env.MONGODB_URL, {
@@ -36,7 +37,7 @@ class Server {
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: false }));
         this.app.use(helmet());
-        //this.app.use(compression());
+        this.app.use(compression());
         this.app.use(cors());
     }
 
