@@ -93,10 +93,10 @@ class UserRoutes{
                 .then();
         });
 
-        this.router.get('/', (req: Request, res: Response) => {
+        /*this.router.get('/', (req: Request, res: Response) => {
            this.getUsers(req, res)
                .then();
-        });
+        });*/
 
         this.router.post('/', (req: Request, res:Response) => {
             this.postUser(req, res)
