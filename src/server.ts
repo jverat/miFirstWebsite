@@ -1,7 +1,5 @@
 import express from 'express';
 import mongoose from 'mongoose';
-
-
 import morgan from 'morgan';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -9,6 +7,9 @@ import cors from 'cors';
 
 import indexRoutes from './routes/indexRoutes';
 import userRoutes from './routes/UserRoutes';
+
+const KEY: string = 'contraseña123';
+const MONGO_URI: string = 'mongodb://localhost/mfws';
 
 class Server {
     public app: express.Application;
@@ -21,15 +22,15 @@ class Server {
 
     config() {
         //DB setup
-        const MONGO_URI = 'mongodb://localhost/mfws';
         mongoose.set('useFindAndModify', true);
-        mongoose.connect(MONGO_URI || process.env.MONGODB_URL, {
+        mongoose.connect(process.env.MONGODB_URL || MONGO_URI, {
             useNewUrlParser: true,
             useCreateIndex: true
         })
             .then(db => console.log('DB is connected'));
 
         //Settings
+        this.app.set('key', KEY);
         this.app.set('port', process.env.PORT || 3000);
 
         //Middlewares
@@ -55,3 +56,5 @@ class Server {
 
 const server = new Server();
 server.start();
+
+export default server.app;

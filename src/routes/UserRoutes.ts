@@ -1,5 +1,7 @@
 import {Request, Response, Router} from "express";
+import jwt from 'jsonwebtoken';
 
+import App from '../server';
 import User from "../models/User";
 
 class UserRoutes{
@@ -10,38 +12,74 @@ class UserRoutes{
         this.routes();
     }
 
-    public async getUser(req: Request, res: Response) {
-        const u = await User.findOne({username: req.params.username});
+    private async getUser(req: Request, res: Response) {
+        const u = await User.findOne({ username: req.params.username });
         console.log((req.params.username));
-        res.json(u)
+        res.json(u);
     }
 
-    public async postUser(req: Request, res: Response) {
+    private async getUsers(req: Request, res: Response){
+        res.json(await User.find());
+    }
+
+    private async postUser(req: Request, res: Response) {
         const {username, password, email} = req.body;
-        const newUser = new User({username, password, email});
+        const newUser = new User({ username, password, email });
         await newUser.save((err, newUser) => {
-            if (err) return console.error(err);
-            else console.log(newUser.get('username'));
+            if (err) {
+                res.json('username or email already exist');
+                return console.error(err);
+            }
+            else {
+                console.log(newUser.get('username') + ' created');
+                res.json({data: newUser});
+            }
         });
-        res.json({data: newUser});
     }
 
-    public async updateUser(req: Request, res: Response) {
+    private async updateUser(req: Request, res: Response) {
         console.log(req.params.username);
         console.log(req.body);
-        const updatedUser = await User.findOneAndUpdate({username: req.params.username}, req.body, {new: true});
-        res.json({data: updatedUser});
+        const updatedUser = await User.findOneAndUpdate({ username: req.params.username }, req.body, { new: true });
+        res.json({ data: updatedUser });
     }
 
-    public async deleteUser(req: Request, res: Response) {
-        await User.findOneAndDelete({username: req.params.username});
+    private async deleteUser(req: Request, res: Response) {
+        await User.findOneAndDelete({ username: req.params.username });
         res.json('copas');
     }
 
-    private routes(){
+    private async authUser(req: Request, res: Response) {
+        let user = await User.findOne({ username: req.body['username'] });
+        if (user == null) res.json('unvalid username');
+        else {
+            if (user.get('password') === req.body['password']){
+                let token: String = jwt.sign({
+                    'username': user.get('username')
+                }, App.get('key'));
+                // @ts-ignore
+                user.token = token;
+                await user.save((err, user) => {
+                    if (err) return console.error(err);
+                    else console.log(user.get('username') + ' token added');
+                });
+                //@ts-ignore
+                console.log(user.username + "  " + user.token);
+                res.json(token);
+            }
+            else res.json ('wrong password');
+        }
+    }
+
+    public routes(){
         this.router.get('/:username', (req: Request, res:Response) => {
             this.getUser(req, res)
                 .then();
+        });
+
+        this.router.get('/', (req: Request, res: Response) => {
+           this.getUsers(req, res)
+               .then();
         });
 
         this.router.post('/', (req: Request, res:Response) => {
@@ -56,6 +94,11 @@ class UserRoutes{
 
         this.router.delete('/:username', (req: Request, res: Response) => {
            this.deleteUser(req, res)
+               .then();
+        });
+
+        this.router.post('/auth', (req: Request, res: Response) => {
+           this.authUser(req, res)
                .then();
         });
     }
