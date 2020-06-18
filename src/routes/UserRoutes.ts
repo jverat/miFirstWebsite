@@ -40,18 +40,34 @@ class UserRoutes{
     private async updateUser(req: Request, res: Response) {
         console.log(req.params.username);
         console.log(req.body);
-        const updatedUser = await User.findOneAndUpdate({ username: req.params.username }, req.body, { new: true });
-        res.json({ data: updatedUser });
+        const userToUpdate = await User.findOne({ username: req.params.username });
+        // @ts-ignore
+        if (userToUpdate.token === req.params.token && userToUpdate.token != ""){
+             let updatedUser = await User.findOneAndUpdate({ username: req.params.username }, req.body, { new: true });
+            res.json({ data: updatedUser });
+        }
+        else {
+            console.log('invalid token');
+            res.json('unauthorized');
+        }
     }
 
     private async deleteUser(req: Request, res: Response) {
-        await User.findOneAndDelete({ username: req.params.username });
-        res.json('copas');
+        let u = await User.findOne({ username: req.params.username });
+        //@ts-ignore
+        if (u.token === req.body.token.toString() && u.token != ""){
+            await User.findOneAndDelete({ username: req.params.username });
+            res.json(req.params.username + ' deleted');
+        }
+        else {
+            console.log('invalid token');
+            res.json('unauthorized');
+        }
     }
 
     private async authUser(req: Request, res: Response) {
         let user = await User.findOne({ username: req.body['username'] });
-        if (user == null) res.json('unvalid username');
+        if (user == null) res.json('invalid username');
         else {
             if (user.get('password') === req.body['password']){
                 let token: String = jwt.sign({
