@@ -1,10 +1,12 @@
-import {Request, Response, Router} from "express";
+import {NextFunction, Request, Response, Router} from 'express';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import passport from 'passport';
 
-import App from '../server';
+import Server from '../server';
 import User from "../models/User";
 
-class UserRoutes{
+class UserRoutes {
     public router: Router;
 
     public constructor() {
@@ -13,24 +15,28 @@ class UserRoutes{
     }
 
     private async getUser(req: Request, res: Response) {
-        const u = await User.findOne({ username: req.params.username });
+        const u = await User.findOne({username: req.params.username});
         console.log((req.params.username));
         res.json(u);
     }
 
-    private async getUsers(req: Request, res: Response){
+    private async getUsers(req: Request, res: Response) {
         res.json(await User.find());
     }
 
     private async postUser(req: Request, res: Response) {
         const {username, password, email} = req.body;
-        const newUser = new User({ username, password, email });
+        console.log(username + " " + password + " " + email);
+        const {salt, hash} = this.genPass(password);
+        console.log(salt + " " + hash);
+        const newUser = new User({username: username, password: hash, salt: salt, email: email});
+        console.log(newUser);
         await newUser.save((err, newUser) => {
+            console.log('smth');
             if (err) {
                 res.json('username or email already exist');
                 return console.error(err);
-            }
-            else {
+            } else {
                 console.log(newUser.get('username') + ' created');
                 res.json({data: newUser});
             }
@@ -38,41 +44,29 @@ class UserRoutes{
     }
 
     private async updateUser(req: Request, res: Response) {
-        console.log(req.params.username);
-        console.log(req.body);
-        const userToUpdate = await User.findOne({ username: req.params.username });
-        // @ts-ignore
-        if (userToUpdate.token === req.params.token && userToUpdate.token != ""){
-             let updatedUser = await User.findOneAndUpdate({ username: req.params.username }, req.body, { new: true });
-            res.json({ data: updatedUser });
-        }
-        else {
-            console.log('invalid token');
-            res.json('unauthorized');
-        }
+        //to-do
     }
 
     private async deleteUser(req: Request, res: Response) {
-        let u = await User.findOne({ username: req.params.username });
+        let u = await User.findOne({username: req.params.username});
         //@ts-ignore
-        if (u.token === req.body.token.toString() && u.token != ""){
-            await User.findOneAndDelete({ username: req.params.username });
+        if (u.token === req.body.token.toString() && u.token != "") {
+            await User.findOneAndDelete({username: req.params.username});
             res.json(req.params.username + ' deleted');
-        }
-        else {
+        } else {
             console.log('invalid token');
             res.json('unauthorized');
         }
     }
 
     private async authUser(req: Request, res: Response) {
-        let user = await User.findOne({ username: req.body['username'] });
+        let user = await User.findOne({username: req.body['username']});
         if (user == null) res.json('invalid username');
         else {
-            if (user.get('password') === req.body['password']){
+            if (user.get('password') === req.body['password']) {
                 let token: String = jwt.sign({
                     'username': user.get('username')
-                }, App.get('key'));
+                }, Server.app.get('key'));
                 // @ts-ignore
                 user.token = token;
                 await user.save((err, user) => {
@@ -82,44 +76,57 @@ class UserRoutes{
                 //@ts-ignore
                 console.log(user.username + "  " + user.token);
                 res.json(token);
-            }
-            else res.json ('wrong password');
+            } else res.json('wrong password');
         }
     }
 
-    public routes(){
-        this.router.get('/:username', (req: Request, res:Response) => {
-            this.getUser(req, res)
-                .then();
-        });
-
+    public routes() {
         /*this.router.get('/', (req: Request, res: Response) => {
            this.getUsers(req, res)
                .then();
         });*/
 
-        this.router.post('/', (req: Request, res:Response) => {
+        this.router.post('/sign', (req: Request, res: Response) => {
             this.postUser(req, res)
+                .then(x => console.log(x));
+        });
+
+        this.router.post('/login',
+            passport.authenticate('local', {failureMessage: 'Wrong user or password', failureRedirect: '/mal', successRedirect: '/'}),
+            (req: Request, res: Response, done: NextFunction) => {
+                console.log(done);
+            });
+
+        this.router.get('/:username', (req: Request, res: Response) => {
+            this.getUser(req, res)
                 .then();
         });
 
         this.router.put('/:username', (req: Request, res: Response) => {
-           this.updateUser(req, res)
-               .then();
+            this.updateUser(req, res)
+                .then();
         });
 
         this.router.delete('/:username', (req: Request, res: Response) => {
-           this.deleteUser(req, res)
-               .then();
+            this.deleteUser(req, res)
+                .then();
         });
+    }
 
-        this.router.post('/auth', (req: Request, res: Response) => {
-           this.authUser(req, res)
-               .then();
-        });
+    public genPass(password: string): { salt: string; hash: string; } {
+        let salt: string = crypto.randomBytes(32).toString('hex');
+        let genHash: string = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+        return {
+            salt: salt,
+            hash: genHash
+        };
+    }
+
+    public checkPass(inPassword: string, hash: string, salt: string): boolean {
+        return hash === crypto.pbkdf2Sync(inPassword, salt, 10000, 64, 'sha512').toString('hex');
     }
 }
 
 const userRoutes = new UserRoutes();
 
-export default userRoutes.router;
+export default userRoutes;

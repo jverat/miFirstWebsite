@@ -13,6 +13,10 @@ class IndexRoutes {
         this.router.get('/', (req: Request, res: Response) => {
             res.send('holi otra vez');
         });
+
+        this.router.get('/mal', (req: Request, res: Response) => {
+           res.send('paila');
+        });
     }
 }
 
