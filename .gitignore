@@ -2,4 +2,30 @@
 /dist/
 /node_modules/
 /tsconfig.tsbuildinfo/
-/frontend/node_modules/
+
+
+#-----------React-----------
+
+# dependencies
+/frontend/node_modules
+/frontend/.pnp
+/frontend/.pnp.js
+
+# testing
+/frontend/coverage
+
+# production
+/frontend/node_modules
+/frontend/build
+/frontend/dist
+
+# misc
+/frontend/.DS_Store
+/frontend/.env.local
+/frontend/.env.development.local
+/frontend/.env.test.local
+/frontend/.env.production.local
+
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*

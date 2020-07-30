@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "jsx": "react",
     "module": "commonjs",
     "target": "es6",
     "sourceMap": true,
@@ -11,5 +12,5 @@
     "esModuleInterop": true,
     "importHelpers": true
   },
-  "exclude": ["node_modules", "frontend"]
+  "exclude": ["node_modules"]
 }
