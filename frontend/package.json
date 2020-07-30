@@ -1,0 +1,15 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.jsx",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "jverat",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "create-react-app": "^3.4.1"
+  }
+}
