@@ -1,21 +1,31 @@
-import {NextFunction, Request, Response, Router} from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import passport from 'passport';
 
 import Server from '../server';
-import User from "../models/User";
+import User, { UserInt } from "../models/User";
 
 class UserRoutes {
     public router: Router;
 
     public constructor() {
         this.router = Router();
+        this.middlewares();
         this.routes();
     }
 
+    private middlewares() {
+        this.router.use(this.authCheck);
+    }
+
+    private authCheck(req: Request, res: Response, next: NextFunction) {
+        if (req.isAuthenticated()) next();
+        else res.status(401).json({ msg: 'Unauthorized' });
+    }
+
     private async getUser(req: Request, res: Response) {
-        const u = await User.findOne({username: req.params.username});
+        const u = await User.findOne({ username: req.params.username });
         console.log((req.params.username));
         res.json(u);
     }
@@ -25,11 +35,11 @@ class UserRoutes {
     }
 
     private async postUser(req: Request, res: Response) {
-        const {username, password, email} = req.body;
+        const { username, password, email } = req.body;
         console.log(username + " " + password + " " + email);
-        const {salt, hash} = this.genPass(password);
+        const { salt, hash } = this.genPass(password);
         console.log(salt + " " + hash);
-        const newUser = new User({username: username, password: hash, salt: salt, email: email});
+        const newUser = new User({ username: username, password: hash, salt: salt, email: email });
         console.log(newUser);
         await newUser.save((err, newUser) => {
             console.log('smth');
@@ -38,7 +48,7 @@ class UserRoutes {
                 return console.error(err);
             } else {
                 console.log(newUser.get('username') + ' created');
-                res.json({data: newUser});
+                res.json({ data: newUser });
             }
         });
     }
@@ -48,10 +58,9 @@ class UserRoutes {
     }
 
     private async deleteUser(req: Request, res: Response) {
-        let u = await User.findOne({username: req.params.username});
-        //@ts-ignore
+        let u = await User.findOne({ username: req.params.username }) as UserInt;
         if (u.token === req.body.token.toString() && u.token != "") {
-            await User.findOneAndDelete({username: req.params.username});
+            await User.findOneAndDelete({ username: req.params.username });
             res.json(req.params.username + ' deleted');
         } else {
             console.log('invalid token');
@@ -60,15 +69,15 @@ class UserRoutes {
     }
 
     private async authUser(req: Request, res: Response) {
-        let user = await User.findOne({username: req.body['username']});
-        if (user == null) res.json('invalid username');
+        let user = await User.findOne({ username: req.body['username'] });
+        if (user == null || user == undefined) res.json('invalid username');
         else {
             if (user.get('password') === req.body['password']) {
                 let token: String = jwt.sign({
                     'username': user.get('username')
                 }, Server.app.get('key'));
-                // @ts-ignore
-                user.token = token;
+                //@ts-ignore
+                user?.token = token;
                 await user.save((err, user) => {
                     if (err) return console.error(err);
                     else console.log(user.get('username') + ' token added');
@@ -87,15 +96,20 @@ class UserRoutes {
         });*/
 
         this.router.post('/sign', (req: Request, res: Response) => {
-            this.postUser(req, res)
-                .then(x => console.log(x));
+            this.postUser(req, res);
         });
 
         this.router.post('/login',
-            passport.authenticate('local', {failureMessage: 'Wrong user or password', failureRedirect: '/mal', successRedirect: '/'}),
+            passport.authenticate('local', { failureMessage: 'Wrong user or password', failureRedirect: '/mal' }),
             (req: Request, res: Response, done: NextFunction) => {
-                console.log(done);
+
             });
+
+        this.router.get('/logout', (req: Request, res: Response) => {
+            req.logout;
+            console.log(req.session);
+            res.redirect('/');
+        });
 
         this.router.get('/:username', (req: Request, res: Response) => {
             this.getUser(req, res)
